@@ -16,10 +16,12 @@ using std::size_t;
 using std::string;
 using std::vector;
 
-System::System() {
-  os_ = LinuxParser::OperatingSystem();
-  float x = LinuxParser::MemoryUtilization();
-  kernel_ = LinuxParser::Kernel();
+System::System(): kernel_{LinuxParser::Kernel()}, os_{LinuxParser::OperatingSystem()}, uid_to_user_map_{LinuxParser::UidToUserMap()} {
+  vector<int> pids = LinuxParser::Pids();
+  for (auto pid : pids)
+  {
+    processes_.push_back(Process(pid, uid_to_user_map_));
+  }
 }
 
 // DONE: Return the system's CPU

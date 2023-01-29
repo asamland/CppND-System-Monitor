@@ -4,6 +4,7 @@
 #include <fstream>
 #include <regex>
 #include <string>
+#include <map>
 
 namespace LinuxParser {
 // Paths
@@ -26,6 +27,7 @@ int TotalProcesses();
 int RunningProcesses();
 std::string OperatingSystem();
 std::string Kernel();
+std::map<int, std::string> UidToUserMap();
 
 // CPU
 enum CPUStates {
@@ -49,9 +51,9 @@ long IdleJiffies();
 // Processes
 std::string Command(int pid);
 std::string Ram(int pid);
-std::string Uid(int pid);
+int Uid(int pid);
 std::string User(int pid);
-long int UpTime(int pid);
+long int ProcStartTime(int pid);
 };  // namespace LinuxParser
 
 #endif
