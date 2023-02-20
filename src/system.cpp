@@ -16,10 +16,12 @@ using std::size_t;
 using std::string;
 using std::vector;
 
-System::System(): kernel_{LinuxParser::Kernel()}, os_{LinuxParser::OperatingSystem()}, uid_to_user_map_{LinuxParser::UidToUserMap()} {
+System::System()
+    : kernel_{LinuxParser::Kernel()},
+      os_{LinuxParser::OperatingSystem()},
+      uid_to_user_map_{LinuxParser::UidToUserMap()} {
   vector<int> pids = LinuxParser::Pids();
-  for (auto pid : pids)
-  {
+  for (auto pid : pids) {
     processes_.push_back(Process(pid, uid_to_user_map_));
   }
 }
