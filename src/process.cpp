@@ -29,10 +29,21 @@ Process::Process(int pid, std::map<int, std::string>& uid_to_user_map)
 int Process::Pid() const { return pid_; }
 
 // TODO: Return this process's CPU utilization
-float Process::CpuUtilization() const {
-  long int active_jiffies = LinuxParser::ActiveJiffies(pid_);
-  long int active_time_s = active_jiffies / sysconf(_SC_CLK_TCK);
-  return (float)active_time_s / UpTime();
+float Process::CpuUtilization() {
+  static long prev_up_time_s = 0;
+  static long int prev_active_time_s = 0;
+  long curr_up_time_s = UpTime();
+  long delta_up_time_s = curr_up_time_s - prev_up_time_s;
+  // throttle calculation to 1 Hz
+  if (delta_up_time_s > 1) {
+    long int curr_active_time_s =
+        LinuxParser::ActiveJiffies(pid_) / sysconf(_SC_CLK_TCK);
+    long int delta_active_time_s = curr_active_time_s - prev_active_time_s;
+    cpu_utilization_ = (float)delta_active_time_s / delta_up_time_s;
+    prev_active_time_s = curr_active_time_s;
+    prev_up_time_s = curr_up_time_s;
+  }
+  return cpu_utilization_;
 }
 
 // DONE: Return the command that generated this process
