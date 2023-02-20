@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <set>
 #include <string>
@@ -13,6 +14,7 @@
 
 using std::set;
 using std::size_t;
+using std::sort;
 using std::string;
 using std::vector;
 
@@ -30,7 +32,10 @@ System::System()
 Processor& System::Cpu() { return cpu_; }
 
 // DONE: Return a container composed of the system's processes
-vector<Process>& System::Processes() { return processes_; }
+vector<Process>& System::Processes() {
+  sort(processes_.begin(), processes_.end(), std::greater<Process>());
+  return processes_;
+}
 
 // DONE: Return the system's kernel identifier (string)
 std::string System::Kernel() { return kernel_; }
