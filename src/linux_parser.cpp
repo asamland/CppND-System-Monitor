@@ -72,8 +72,8 @@ vector<int> LinuxParser::Pids() {
 
 // DONE: Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() {
-  string line, key, value, mem_total_key, mem_free_key;
-  long int mem_total = 0, mem_free = 0;
+  string line, key, mem_total_key, mem_free_key;
+  long int mem_total = 0, mem_free = 0, value;
   mem_total_key = "MemTotal:";
   mem_free_key = "MemFree:";
 
@@ -83,9 +83,9 @@ float LinuxParser::MemoryUtilization() {
       std::istringstream linestream(line);
       linestream >> key >> value;
       if (key == mem_total_key) {
-        mem_total = std::stol(value);
+        mem_total = value;
       } else if (key == mem_free_key) {
-        mem_free = std::stol(value);
+        mem_free = value;
       }
       if ((mem_free > 0) && (mem_total > 0)) {
         return (mem_total - mem_free) / (float)(mem_total);
@@ -97,8 +97,7 @@ float LinuxParser::MemoryUtilization() {
 
 // DONE: Read and return the system uptime
 long LinuxParser::UpTime() {
-  string system_uptime_s, system_idle_time_s;
-  string line;
+  string line, system_uptime_s, system_idle_time_s;
   std::ifstream stream(kProcDirectory + kUptimeFilename);
   if (stream.is_open()) {
     std::getline(stream, line);
@@ -110,8 +109,9 @@ long LinuxParser::UpTime() {
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() {
-  string line, key, user, nice, system, idle, iowait, irq, softirq, steal,
-      guest, guest_nice, cpu_key;
+  string line, key, cpu_key;
+  long user, nice, system, idle, iowait, irq, softirq, steal,
+      guest, guest_nice;
   cpu_key = "cpu";
   std::ifstream filestream(kProcDirectory + kStatFilename);
   if (filestream.is_open()) {
@@ -121,10 +121,10 @@ long LinuxParser::Jiffies() {
       if (key == cpu_key) {
         linestream >> user >> nice >> system >> idle >> iowait >> irq >>
             softirq >> steal >> guest >> guest_nice;
-        return std::stol(user) + std::stol(nice) + std::stol(system) +
-               std::stol(idle) + std::stol(iowait) + std::stol(irq) +
-               std::stol(softirq) + std::stol(steal) + std::stol(guest) +
-               std::stol(guest_nice);
+        return user + nice + system +
+               idle + iowait + irq +
+               softirq + steal + guest +
+               guest_nice;
       }
     }
   }
@@ -133,19 +133,24 @@ long LinuxParser::Jiffies() {
 
 // DONE: Read and return the number of active jiffies for a PID
 long LinuxParser::ActiveJiffies(int pid) {
-  string line, value;
-  int utime_index = 14, stime_index = 15, cutime_index = 16, cstime_index = 17,
-      active_jiffies = 0;
+  string line, throw_away;
+  long value;
+  const int utime_index = 14, stime_index = 15, cutime_index = 16, cstime_index = 17;
+  int active_jiffies = 0;
   std::ifstream filestream(kProcDirectory + std::to_string(pid) +
                            kStatFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
       for (int i = 1; i <= cstime_index; i++) {
-        linestream >> value;
         if (i == utime_index || i == stime_index || i == cutime_index ||
             i == cstime_index) {
-          active_jiffies += std::stoi(value);
+          linestream >> value;
+          active_jiffies += value;
+        }
+        else
+        {
+          linestream >> throw_away;
         }
       }
       return active_jiffies;
@@ -156,8 +161,8 @@ long LinuxParser::ActiveJiffies(int pid) {
 
 // DONE: Read and return the number of active jiffies for the system
 long LinuxParser::ActiveJiffies() {
-  string line, key, user, nice, system, idle, iowait, irq, softirq, steal,
-      guest, guest_nice, cpu_key;
+  string line, key, cpu_key;
+  long user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
   cpu_key = "cpu";
   std::ifstream filestream(kProcDirectory + kStatFilename);
   if (filestream.is_open()) {
@@ -167,9 +172,9 @@ long LinuxParser::ActiveJiffies() {
       if (key == cpu_key) {
         linestream >> user >> nice >> system >> idle >> iowait >> irq >>
             softirq >> steal >> guest >> guest_nice;
-        return std::stol(user) + std::stol(nice) + std::stol(system) +
-               std::stol(irq) + std::stol(softirq) + std::stol(steal) +
-               std::stol(guest) + std::stol(guest_nice);
+        return user + nice + system +
+               irq + softirq + steal +
+               guest + guest_nice;
       }
     }
   }
@@ -219,15 +224,16 @@ vector<string> LinuxParser::CpuUtilization() {
 
 // DONE: Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
-  string line, key, value, process_key;
+  string line, key, process_key;
+  int value;
   process_key = "processes";
   std::ifstream filestream(kProcDirectory + kStatFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
       linestream >> key >> value;
-      if (key == process_key) {
-        return std::stoi(value);
+      if (key == process_key and !linestream.fail()) {
+        return value;
       }
     }
   }
@@ -236,15 +242,16 @@ int LinuxParser::TotalProcesses() {
 
 // DONE: Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
-  string line, key, value, process_key;
+  string line, key, process_key;
+  int value;
   process_key = "procs_running";
   std::ifstream filestream(kProcDirectory + kStatFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
       linestream >> key >> value;
-      if (key == process_key) {
-        return std::stoi(value);
+      if (key == process_key and !linestream.fail()) {
+        return value;
       }
     }
   }
@@ -305,7 +312,8 @@ int LinuxParser::Uid(int pid) {
 
 map<int, string> LinuxParser::UidToUserMap() {
   map<int, string> uid_to_user_map;
-  string line, user, x, uid;
+  string line, user, x;
+  int uid;
   std::ifstream filestream(kPasswordPath);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
@@ -313,7 +321,7 @@ map<int, string> LinuxParser::UidToUserMap() {
       std::istringstream linestream(line);
       // x is a throw away value here
       linestream >> user >> x >> uid;
-      uid_to_user_map.insert(pair<int, string>(std::stoi(uid), user));
+      uid_to_user_map.insert(pair<int, string>(uid, user));
     }
   }
   return uid_to_user_map;

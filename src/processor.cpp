@@ -1,14 +1,12 @@
-#include "processor.h"
-
 #include <unistd.h>
-
 #include <vector>
 
 #include "linux_parser.h"
+#include "processor.h"
 
 // DONE: Return the aggregate CPU utilization
 float Processor::Utilization() {
-  static long jiffies_per_s = sysconf(_SC_CLK_TCK);
+  const static long jiffies_per_s = sysconf(_SC_CLK_TCK);
   static long prev_jiffies = 0;
   static long int prev_active_jiffies = 0;
   long curr_jiffies = LinuxParser::Jiffies();

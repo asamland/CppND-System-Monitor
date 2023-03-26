@@ -73,15 +73,22 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
   wattroff(window, COLOR_PAIR(2));
   int const num_processes = int(processes.size()) > n ? n : processes.size();
   for (int i = 0; i < num_processes; ++i) {
-    mvwprintw(window, ++row, pid_column, to_string(processes[i].Pid()).c_str());
-    mvwprintw(window, row, user_column, processes[i].User().c_str());
-    float cpu = processes[i].CpuUtilization() * 100;
+    //append white space to end of string to fix display issues
+    string pid_out  = to_string(processes[i].Pid()) + "      ";
+    mvwprintw(window, ++row, pid_column, pid_out.c_str());
+    //append white space to end of string to fix display issues
+    string user_out  = processes[i].User() + "      ";
+    mvwprintw(window, row, user_column, user_out.c_str());
+    float cpu = processes[i].CpuUtilization();
     mvwprintw(window, row, cpu_column, to_string(cpu).substr(0, 4).c_str());
-    mvwprintw(window, row, ram_column, processes[i].Ram().c_str());
+    string ram_out = processes[i].Ram() + "                           ";
+    mvwprintw(window, row, ram_column, ram_out.c_str());
     mvwprintw(window, row, time_column,
               Format::ElapsedTime(processes[i].UpTime()).c_str());
+    //append white space to end of string to fix display issues
+    string cmd_out  = processes[i].Command() + "                                                                         ";
     mvwprintw(window, row, command_column,
-              processes[i].Command().substr(0, window->_maxx - 46).c_str());
+              cmd_out.substr(0, window->_maxx - 46).c_str());
   }
 }
 

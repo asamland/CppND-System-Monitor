@@ -6,7 +6,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
 #include "linux_parser.h"
 
 using std::string;
@@ -21,27 +20,27 @@ Process::Process(int pid, std::map<int, std::string>& uid_to_user_map)
   if (pair != uid_to_user_map.end()) {
     user_ = pair->second;
   } else {
-    user_ = "unknown_user";
+    user_ = "unknown";
   }
 }
 
 // DONE: Return this process's ID
 int Process::Pid() const { return pid_; }
 
-// TODO: Return this process's CPU utilization
+// DONE: Return this process's CPU utilization
 float Process::CpuUtilization() {
-  static long prev_up_time_s = 0;
-  static long int prev_active_time_s = 0;
-  long curr_up_time_s = UpTime();
-  long delta_up_time_s = curr_up_time_s - prev_up_time_s;
+  const static long jiffies_per_s = sysconf(_SC_CLK_TCK);
+  static long prev_jiffies = 0;
+  static long int prev_active_jiffies = 0;
+  long curr_jiffies = LinuxParser::Jiffies();
+  long curr_active_jiffies = LinuxParser::ActiveJiffies(pid_);
+  long delta_jiffies = curr_jiffies - prev_jiffies;
   // throttle calculation to 1 Hz
-  if (delta_up_time_s > 1) {
-    long int curr_active_time_s =
-        LinuxParser::ActiveJiffies(pid_) / sysconf(_SC_CLK_TCK);
-    long int delta_active_time_s = curr_active_time_s - prev_active_time_s;
-    cpu_utilization_ = (float)delta_active_time_s / delta_up_time_s;
-    prev_active_time_s = curr_active_time_s;
-    prev_up_time_s = curr_up_time_s;
+  if (delta_jiffies > jiffies_per_s) {
+    long int delta_active_jiffies =  (curr_active_jiffies > prev_active_jiffies) ? (curr_active_jiffies - prev_active_jiffies) : 0;
+    cpu_utilization_ = (float)delta_active_jiffies / delta_jiffies;
+    prev_active_jiffies = curr_active_jiffies;
+    prev_jiffies = curr_jiffies;
   }
   return cpu_utilization_;
 }
