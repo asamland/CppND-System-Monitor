@@ -20,13 +20,13 @@ const std::string kOSPath{"/etc/os-release"};
 const std::string kPasswordPath{"/etc/passwd"};
 
 // System
-float MemoryUtilization();                                // DONE
-long UpTime();                                            // DONE
-std::vector<int> Pids();                                  // DONE -- already implemented
-int TotalProcesses();                                     // DONE
-int RunningProcesses();                                   // DONE
-std::string OperatingSystem();                            // DONE
-std::string Kernel();                                     // DONE
+float MemoryUtilization();      // DONE
+long UpTime();                  // DONE
+std::vector<int> Pids();        // DONE -- already implemented
+int TotalProcesses();           // DONE
+int RunningProcesses();         // DONE
+std::string OperatingSystem();  // DONE
+std::string Kernel();           // DONE
 std::map<int, std::string> UidToUserMap();
 
 // CPU
